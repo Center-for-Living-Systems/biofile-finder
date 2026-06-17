@@ -85,10 +85,12 @@ export enum LoadBalancerBaseUrl {
 }
 
 export enum DatasetBucketUrl {
-    LOCALHOST = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
-    STAGING = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
-    PRODUCTION = "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com",
-    TEST = "http://test-aics.corp.alleninstitute.org",
+    // Self-hosted: point the public-datasets list at our own Caddy /data route.
+    // The app fetches `${DatasetBucketUrl}/Dataset+Manifest.csv`.
+    LOCALHOST = "https://128.135.108.226/data",
+    STAGING = "https://128.135.108.226/data",
+    PRODUCTION = "https://128.135.108.226/data",
+    TEST = "https://128.135.108.226/data",
 }
 
 export enum CellFeatureExplorerBaseUrl {

@@ -1,16 +1,9 @@
-import classNames from "classnames";
 import * as React from "react";
 
 import styles from "./Footer.module.css";
 
 export default function Footer() {
-    return (
-        <div className={styles.footer}>
-            {/* OneTrust Cookies Settings button start */}
-            <a id="ot-sdk-btn" className={classNames("ot-sdk-show-settings", styles.footerLink)}>
-                Cookie settings
-            </a>
-            {/* OneTrust Cookies Settings button end */}
-        </div>
-    );
+    // OneTrust cookie-settings button removed: the OneTrust SDK is an Allen-only
+    // integration not loaded in this self-hosted build, so the button was dead.
+    return <div className={styles.footer} />;
 }
