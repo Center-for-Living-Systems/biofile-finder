@@ -1,6 +1,10 @@
 BioFile Finder
 =================
 
+> **Self-hosted fork (Gardel Lab).** This repo is deployed on a lab box; the deployment
+> code, configuration, accounts/roles, and operations are documented in
+> **[`deploy/README.md`](./deploy/README.md)**. Everything below is upstream's.
+
 BioFile Finder is an application produced by the Allen
 Institute for Cell Science designed to simplify access and exploration of data, provide an intuitive mechanism for organizing that data, and provide simple hooks for
 incorporating that data into both programmatic and non-programmatic workflows.
