@@ -13,7 +13,7 @@ from urllib.parse import quote
 import numpy as np
 from PIL import Image
 
-HOST = "https://128.135.108.226"
+HOST = "http://128.135.108.226"
 RAW_ROOT = Path("/srv/gardelnas")
 RAW_BASE = f"{HOST}/gardel"
 DERIVED_ROOT = Path("/srv/shared/_derived/gardel")

@@ -87,10 +87,10 @@ export enum LoadBalancerBaseUrl {
 export enum DatasetBucketUrl {
     // Self-hosted: point the public-datasets list at our own Caddy /data route.
     // The app fetches `${DatasetBucketUrl}/Dataset+Manifest.csv`.
-    LOCALHOST = "https://128.135.108.226/data",
-    STAGING = "https://128.135.108.226/data",
-    PRODUCTION = "https://128.135.108.226/data",
-    TEST = "https://128.135.108.226/data",
+    LOCALHOST = "http://128.135.108.226/data",
+    STAGING = "http://128.135.108.226/data",
+    PRODUCTION = "http://128.135.108.226/data",
+    TEST = "http://128.135.108.226/data",
 }
 
 export enum CellFeatureExplorerBaseUrl {

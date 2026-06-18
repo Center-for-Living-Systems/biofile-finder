@@ -11,7 +11,7 @@ import csv, json
 from urllib.parse import quote
 from pathlib import Path
 
-HOST = "https://128.135.108.226"
+HOST = "http://128.135.108.226"
 OUT = Path("/srv/shared/Dataset+Manifest.csv")
 
 # The /datasets page maps columns by DISPLAY LABEL (annotations.find(name == displayLabel)),

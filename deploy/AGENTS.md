@@ -15,8 +15,8 @@ system is, how it's wired, where everything lives, and how to operate it.
   Institute), pinned to release **v9.0.0**, customized to self-host Gardel Lab microscopy data.
 - The app is **100% client-side** (DuckDB-WASM in the browser). No app backend/database.
   A web server (**Caddy**) just serves static files + CSV manifests.
-- **Live at https://128.135.108.226/** — **PUBLIC, no login** (auth was removed by operator
-  decision). Self-signed HTTPS.
+- **Live at http://128.135.108.226/** — **PUBLIC, no login** (auth was removed by operator
+  decision). **Plain HTTP — no TLS** (chosen to avoid cert warnings; OK since the site is public).
 - The repo **is** the deployment: everything is under `deploy/`, the box runs from branch
   **`main`**, and `main` = `v9.0.0 + deploy commits`.
 - Datasets appear on **`/datasets`**; each is a CSV "manifest" of files + PNG previews.
@@ -28,10 +28,10 @@ system is, how it's wired, where everything lives, and how to operate it.
 ## 1. Architecture
 
 ```
-                     Browser  (https, self-signed, NO auth)
+                     Browser  (plain HTTP, NO auth)
                                  │
         ┌──────────────────── Caddy (systemd) ────────────────────┐
-        │  site 128.135.108.226   tls internal                    │
+        │  site http://128.135.108.226   (plain HTTP, no TLS)     │
         │                                                         │
         │  /robots.txt → Disallow: /                              │
         │  /data/*   → /srv/shared            (master manifest,   │
@@ -53,7 +53,7 @@ system is, how it's wired, where everything lives, and how to operate it.
 1. Browser loads the static app from `/srv/www/biofile-finder` (client routes like
    `/datasets`, `/app` are served `index.html` via SPA fallback).
 2. The app fetches the **master dataset list** from `${DatasetBucketUrl}/Dataset+Manifest.csv`.
-   `DatasetBucketUrl` is **baked into the build** = `https://128.135.108.226/data`
+   `DatasetBucketUrl` is **baked into the build** = `http://128.135.108.226/data`
    (see `packages/core/constants/index.ts`).
 3. Each row of that CSV is one dataset (a `PublicDataset`). Clicking it runs the row's
    **`Specific query`**, which loads that dataset's own **file manifest**.
@@ -131,14 +131,17 @@ logs `journalctl -u caddy -f`. (The old `biofile-finder-demo` Python server was 
   members' folders on the NAS are **not** web-reachable. **Do not** repoint `/gardel` at
   `/srv/gardelnas` (the whole share) — that would expose everyone's unpublished data.
 - **NAS is read-only** (`ro` mount + read-only service account). No writes are possible.
-- **TLS** is self-signed (Caddy `tls internal`) — no public DNS name exists for this box, so
-  Let's Encrypt can't issue. Browsers warn unless the Caddy root CA is trusted on the client
-  (`/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt`).
-- **Firewall:** `ufw` allows inbound 22/80/443 only.
+- **No TLS — plain HTTP.** Traffic is **unencrypted in transit**. Acceptable here only because
+  the site is fully public with no login, so nothing secret crosses the wire; anyone on the
+  network path can read the (already-public) data. (No public DNS name exists for this box, so
+  a real cert isn't possible; self-signed HTTPS was dropped to avoid the browser warning.)
+- **Firewall:** `ufw` allows inbound 22/80 only.
 - **`robots.txt`** disallows all crawlers (courtesy; not enforcement).
 
 To **re-enable a login** later: set `AUTH_USER`/`AUTH_PASS` in `.env`, add a `basic_auth` block
 to the Caddyfile (`caddy hash-password`), `systemctl reload caddy`. See `setup-caddy-auth.sh`.
+**Note:** over plain HTTP, Basic Auth credentials travel in **cleartext** — restore TLS
+(`tls internal` + `https://` site) before adding any login.
 
 ---
 
@@ -164,7 +167,7 @@ elsewhere, `cp .env.example .env` and fill it in (`.env` exists only on the box)
 
 Three commits on top of v9.0.0 (require a rebuild if changed):
 
-1. `packages/core/constants/index.ts` — `DatasetBucketUrl` (all envs) → `https://128.135.108.226/data`
+1. `packages/core/constants/index.ts` — `DatasetBucketUrl` (all envs) → `http://128.135.108.226/data`
    so `/datasets` reads our master manifest instead of Allen's S3.
 2. `packages/web/webpack/index.html` — removed Google Tag Manager (Allen analytics).
 3. `packages/web/src/components/Footer/index.tsx` — removed the dead OneTrust "Cookie settings"
@@ -228,11 +231,13 @@ Before redeploying a big jump, verify the datasets machinery is unchanged
 (`PublicDataset`, `useDatasetDetails`, `${DatasetBucketUrl}/Dataset+Manifest.csv`,
 `File Path`/`Thumbnail`). Snapshot `/srv/www` first for instant rollback.
 
-### Trust the cert (kills the browser warning, per client machine)
-```bash
-sudo install -m644 /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt /tmp/caddy-root-ca.crt
-# copy to client and trust it (macOS Keychain 'Always Trust' / Ubuntu update-ca-certificates / Windows certutil -addstore Root)
-```
+### Switch schemes (HTTP ↔ HTTPS)
+The scheme is baked into the build (`DatasetBucketUrl` in `constants/index.ts`) and into the
+manifest URLs. To change it: edit `DatasetBucketUrl`, set the same scheme as `HOST` in the
+`deploy/build-*.py` generators, regenerate manifests (`build-master-manifest.py` + the
+per-dataset builders, or `sed -i 's#https://#http://#g'` the CSVs under `/srv/shared`),
+rebuild + redeploy the app, and set the Caddy site address to `http://…` or `https://… { tls internal }`.
+Currently HTTP-only.
 
 ---
 
@@ -245,7 +250,7 @@ sudo install -m644 /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.
 | Published file 404 | Not in the `/gardel` allowlist — re-run `publish-symlinks.py` after onboarding. |
 | No thumbnails | `Thumbnail` URL must resolve under `/data/_derived/…`. Re-run the dataset builder. |
 | `/datasets` 404 (route) | App not served with SPA fallback — re-run `serve-app-static.sh`. |
-| Browser cert warning | Expected (self-signed). Trust the root CA (§7) or click through. |
+| Site won't load over `https://` | Expected — currently **HTTP-only**. Use `http://128.135.108.226/`. |
 | NAS files 403/404 | `mountpoint /srv/gardelnas`? `sudo mount /srv/gardelnas`. Caddy must be in `researchers` group. |
 | Empty page after rebuild | Hard-refresh (Ctrl/Cmd-Shift-R) to drop the cached old JS bundle. |
 
