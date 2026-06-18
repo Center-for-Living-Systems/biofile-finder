@@ -1,0 +1,25 @@
+[Unit]
+Description=BioFile Finder local demo (static server on :8080)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dsadmin
+Group=dsadmin
+WorkingDirectory=/home/dsadmin/biofile-finder/deploy
+# Backend behind Caddy: listen on loopback only; Caddy (443) terminates TLS + auth
+# and reverse-proxies here. Manifest File Path URLs point at Caddy via PUBLIC_BASE_URL.
+Environment=PORT=8080
+Environment=BIND=127.0.0.1
+Environment=HOST=128.135.108.226
+Environment=PUBLIC_BASE_URL=https://128.135.108.226/nas
+ExecStart=/usr/bin/env bash /home/dsadmin/biofile-finder/deploy/demo-local.sh
+Restart=always
+RestartSec=3
+# basic hardening
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

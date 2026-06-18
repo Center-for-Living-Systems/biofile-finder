@@ -19,3 +19,14 @@ mise.toml
 packages/web/benchmark-results*.json
 # Generated parquet fixtures — produce with scripts/generate-fixtures.py
 packages/web/fixtures/
+
+# --- Self-hosted deploy/ : secrets & local artifacts (never commit) ---
+deploy/.env
+deploy/.venv/
+deploy/__pycache__/
+deploy/**/__pycache__/
+deploy/*.pyc
+deploy/demo-data/
+deploy/demo-web-root/
+deploy/*.crt
+deploy/.beads/
