@@ -13,7 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILDER="$SCRIPT_DIR/build-nas-dataset.py"
 NAS_ROOT="/srv/gardelnas"
-FA_ML_BASE="$NAS_ROOT/expansion/Annabel/FA-ML/For-Liya_Data-Sets-that-look-good-and-contain-paxillin"
+FA_ML_BASE="$NAS_ROOT/Annabel/FA-ML/For-Liya_Data-Sets-that-look-good-and-contain-paxillin"
 
 echo "=== 1/4  20250311 — Vinculin / Paxillin ==="
 python3 "$BUILDER" \
