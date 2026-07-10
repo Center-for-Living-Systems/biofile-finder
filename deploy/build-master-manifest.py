@@ -41,19 +41,25 @@ def specific_query(manifest_url: str, name: str) -> str:
     return "source=" + quote(json.dumps(src, separators=(",", ":")), safe="")
 
 
+NAS_BASE = f"{HOST}/data/_derived/gardel"
+
+# All four Annabel / FA-ML datasets from the Gardel Lab NAS.
+# Manifests are built by running deploy/build-annabel-datasets.sh on the server.
+# File counts and sizes are filled in after the first manifest build.
 DATASETS = [
     {
-        "dataset_id": "031125data",
-        "dataset_name": "031125data — Adhesion markers (Control vs YComp)",
-        "dataset_path": f"{HOST}/data/_derived/031125data-manifest.csv",
-        "dataset_size": "1.0 GB",
-        "description": ("Confocal microscopy: 91 CZI (4 channels — eGFP-Zyxin 488, "
-                        "Phalloidin 405, Vinculin 647, Paxillin 568) + 91 frontmask TIFs. "
-                        "Conditions: Control vs YComp. Includes PNG previews."),
-        "file_count": "189",
+        "dataset_id": "20250311-vinc-pax",
+        "dataset_name": "20250311 — eGFP-Zyxin 488 / Phalloidin 405 / Vinculin 647 / Paxillin 568",
+        "dataset_path": f"{NAS_BASE}/20250311-vinc-pax-manifest.csv",
+        "dataset_size": "—",
+        "description": ("Confocal CZI: eGFP-Zyxin (488), Phalloidin (405), "
+                        "Vinculin (rb, 647), Paxillin (m, 568). "
+                        "Focal-adhesion marker panel. "
+                        "Served live from Gardel Lab NAS (read-only)."),
+        "file_count": "—",
         "featured": "TRUE",
         "created": "2025-03-11",
-        "organization": "University of Chicago",
+        "organization": "University of Chicago — Gardel Lab",
         "related_publication": "",
         "doi": "",
         "version": "1",
@@ -61,21 +67,60 @@ DATASETS = [
         "source": "external",
     },
     {
-        "dataset_id": "20250721-pPaxy118",
-        "dataset_name": "20250721 — pPaxillin-Y118 (Control vs Y-comp)",
-        "dataset_path": f"{HOST}/data/_derived/gardel/20250721-pPaxy118-manifest.csv",
-        "dataset_size": "174 MB",
-        "description": ("Confocal: 21 CZI (eGFP-Zyxin 488, Phalloidin 405, "
-                        "pPaxillin-Y118 (rb) 647, Paxillin (m) 568) + ROI archives. "
-                        "Control vs Y-comp. Served live from Gardel Lab NAS (read-only)."),
-        "file_count": "32",
+        "dataset_id": "20250720-pfak-pax",
+        "dataset_name": "20250720 — eGFP-Zyxin 488 / Phalloidin 405 / pFAK 647 / Paxillin 568",
+        "dataset_path": f"{NAS_BASE}/20250720-pfak-pax-manifest.csv",
+        "dataset_size": "—",
+        "description": ("Confocal CZI: eGFP-Zyxin (488), Phalloidin (405), "
+                        "pFAK (rb, 647), Paxillin (m, 568). "
+                        "FAK-phosphorylation panel. "
+                        "Served live from Gardel Lab NAS (read-only)."),
+        "file_count": "—",
+        "featured": "TRUE",
+        "created": "2025-07-20",
+        "organization": "University of Chicago — Gardel Lab",
+        "related_publication": "",
+        "doi": "",
+        "version": "1",
+        "index": "2",
+        "source": "external",
+    },
+    {
+        "dataset_id": "20250721-ppax118",
+        "dataset_name": "20250721 — eGFP-Zyxin 488 / Phalloidin 405 / pPaxillin-Y118 647 / Paxillin 568",
+        "dataset_path": f"{NAS_BASE}/20250721-ppax118-manifest.csv",
+        "dataset_size": "—",
+        "description": ("Confocal CZI: eGFP-Zyxin (488), Phalloidin (405), "
+                        "pPaxillin-Y118 (rb, 647), Paxillin (m, 568). "
+                        "Paxillin Y118 phosphorylation panel. "
+                        "Served live from Gardel Lab NAS (read-only)."),
+        "file_count": "—",
         "featured": "TRUE",
         "created": "2025-07-21",
         "organization": "University of Chicago — Gardel Lab",
         "related_publication": "",
         "doi": "",
         "version": "1",
-        "index": "2",
+        "index": "3",
+        "source": "external",
+    },
+    {
+        "dataset_id": "20260227-nih3t3-vinc-pax",
+        "dataset_name": "20260227 — NIH3T3 / Zyxin-GFP / Phalloidin 405 / Vinculin 647 / Paxillin 555",
+        "dataset_path": f"{NAS_BASE}/20260227-nih3t3-vinc-pax-manifest.csv",
+        "dataset_size": "—",
+        "description": ("Confocal CZI (reduced size): NIH3T3 cells, "
+                        "Zyxin-GFP, Phalloidin (405), "
+                        "Vinculin (rb, 647), Paxillin (m, 555). "
+                        "Served live from Gardel Lab NAS (read-only)."),
+        "file_count": "—",
+        "featured": "TRUE",
+        "created": "2026-02-27",
+        "organization": "University of Chicago — Gardel Lab",
+        "related_publication": "",
+        "doi": "",
+        "version": "1",
+        "index": "4",
         "source": "external",
     },
 ]
