@@ -89,14 +89,6 @@ export default function FileDetails(props: Props) {
     const previewUrl = props.fileDetails?.annotations.find(
         (a) => typeof a.values[0] === "string" && String(a.values[0]).includes("viewer.html?meta=")
     )?.values[0] as string | undefined;
-    // Debug: log annotation names and the found previewUrl
-    if (props.fileDetails) {
-        console.log(
-            "[Preview debug] annotations:",
-            props.fileDetails.annotations.map((a) => `${a.name}=${a.values[0]}`)
-        );
-        console.log("[Preview debug] previewUrl:", previewUrl);
-    }
     const [previewOpen, setPreviewOpen] = React.useState(false);
     // Close preview panel when a different file is selected
     React.useEffect(() => {
