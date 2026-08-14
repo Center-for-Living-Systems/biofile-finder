@@ -25,7 +25,7 @@ import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
     onLoadDataset: (dataset: PublicDataset) => void;
-    featured?: boolean; // Flag to filter down to only the featured datasets
+    category?: "featured" | "testing";
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
@@ -46,7 +46,7 @@ export default function DatasetTable(props: DatasetTableProps) {
             };
         }
     );
-    const [items, isLoading, error] = useDatasetDetails(sortColumn, props?.featured);
+    const [items, isLoading, error] = useDatasetDetails(sortColumn, props?.category);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
@@ -57,7 +57,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                 <div className={styles.rowWrapper}>
                     <Icon
                         className={classNames(styles.favoriteIcon, {
-                            [styles.favoriteIconHidden]: !props.featured,
+                            [styles.favoriteIconHidden]: props.category !== "featured",
                         })}
                         iconName="FavoriteStarFill"
                     />

@@ -15,6 +15,7 @@ interface FileAnnotationRowProps {
     name: string;
     value: string;
     fmsStateIndicator?: boolean;
+    onPreviewClick?: () => void;
 }
 
 /**
@@ -108,7 +109,22 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 columnKey="value"
                 width={1}
             >
-                {annotation?.isOpenFileLink ? (
+                {props.onPreviewClick ? (
+                    <button
+                        className={styles.link}
+                        onContextMenu={onContextMenuHandlerFactory(trimmedValue)}
+                        onClick={props.onPreviewClick}
+                        style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            textAlign: "left",
+                        }}
+                    >
+                        ▸ Open preview
+                    </button>
+                ) : annotation?.isOpenFileLink || /^https?:\/\//.test(trimmedValue) ? (
                     <a
                         className={styles.link}
                         onContextMenu={onContextMenuHandlerFactory(trimmedValue)}

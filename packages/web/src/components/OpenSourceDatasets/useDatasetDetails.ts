@@ -14,7 +14,7 @@ import PublicDataset, { PublicDatasetProps } from "../../entity/PublicDataset";
  */
 export default function useDatasetDetails(
     fileSort?: FileSort | undefined,
-    featured?: boolean
+    category?: "featured" | "testing"
 ): [PublicDatasetProps[] | null, boolean, string | undefined] {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string>();
@@ -50,7 +50,11 @@ export default function useDatasetDetails(
                                         dataset.annotations
                                     )
                             )
-                            .filter((dataset) => dataset?.featured === !!featured)
+                            .filter((dataset) => {
+                                if (category === "featured") return dataset.featured;
+                                if (category === "testing") return dataset.isTest;
+                                return false;
+                            })
                             .map((dataset) => dataset.details)
                     );
                     setIsLoading(false);
@@ -63,6 +67,6 @@ export default function useDatasetDetails(
         return () => {
             setIsLoading(false);
         };
-    }, [featured, fileSet, publicDatasetListService, datasetManifestSource]);
+    }, [category, fileSet, publicDatasetListService, datasetManifestSource]);
     return [items, isLoading, error];
 }

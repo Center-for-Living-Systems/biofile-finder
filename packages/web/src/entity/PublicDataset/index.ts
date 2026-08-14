@@ -13,7 +13,7 @@ export interface PublicDatasetProps {
     dataset_size?: string;
     description?: string;
     doi?: string;
-    featured?: "TRUE" | "FALSE"; // string containing boolean indicating if this is one of BFF's featured datasets
+    featured?: "TRUE" | "FALSE" | "TESTING"; // string indicating dataset category
     file_count?: string;
     index?: string;
     created?: string;
@@ -172,6 +172,10 @@ export default class PublicDataset {
 
     public get featured(): boolean {
         return this.datasetDetails.featured?.toLowerCase() === "true";
+    }
+
+    public get isTest(): boolean {
+        return this.datasetDetails.featured?.toLowerCase() === "testing";
     }
 
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {

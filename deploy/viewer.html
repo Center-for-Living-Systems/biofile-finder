@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Image Viewer — Gardel Lab</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111; color: #ddd;
+  font: 14px/1.5 system-ui, sans-serif;
+  padding: 16px; min-height: 100vh;
+}
+h1 {
+  font-size: 13px; color: #666; font-weight: normal;
+  margin-bottom: 14px; word-break: break-all;
+}
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.label { color: #666; font-size: 12px; min-width: 56px; }
+.ch-btn {
+  padding: 4px 13px; border: 1px solid #3a3a3a; background: #1e1e1e;
+  color: #bbb; cursor: pointer; border-radius: 3px; font-size: 13px;
+  transition: background 0.1s;
+}
+.ch-btn:hover { border-color: #666; color: #eee; }
+.ch-btn.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+input[type=range] { width: 260px; accent-color: #1d4ed8; cursor: pointer; }
+.z-val { font-size: 12px; color: #666; min-width: 48px; }
+#img-box {
+  position: relative; display: inline-block;
+  background: #000; margin-top: 4px;
+  max-width: 100%;
+}
+#preview { display: block; max-width: 100%; max-height: calc(100vh - 130px); }
+#spinner {
+  position: absolute; inset: 0; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,.4); color: #888; font-size: 12px;
+}
+.error { color: #f66; padding: 20px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1 id="title">Loading…</h1>
+
+<div class="row" id="ch-row">
+  <span class="label">Channel</span>
+</div>
+
+<div class="row" id="z-row" style="display:none">
+  <span class="label">Z-plane</span>
+  <input type="range" id="z-slider" min="0" value="0">
+  <span class="z-val" id="z-val"></span>
+</div>
+
+<div id="img-box">
+  <img id="preview" alt="preview image">
+  <div id="spinner">loading…</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const metaUrl = params.get('meta');
+if (!metaUrl) {
+  document.body.innerHTML = '<div class="error">Missing <code>?meta=</code> parameter.</div>';
+  throw '';
+}
+
+let Z = 0, C = 0, zCount = 1, previewBase = '';
+const img = document.getElementById('preview');
+const spinner = document.getElementById('spinner');
+
+function imgUrl() {
+  return `${previewBase}.c${C}.z${String(Z).padStart(3, '0')}.jpg`;
+}
+
+function render() {
+  spinner.style.display = 'flex';
+  const next = new Image();
+  next.onload  = () => { img.src = next.src; spinner.style.display = 'none'; };
+  next.onerror = () => { img.alt = '(image unavailable)'; spinner.style.display = 'none'; };
+  next.src = imgUrl();
+  document.getElementById('z-val').textContent = `${Z + 1} / ${zCount}`;
+  document.querySelectorAll('.ch-btn').forEach((b, i) => b.classList.toggle('active', i === C));
+}
+
+fetch(metaUrl)
+  .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+  .then(meta => {
+    zCount      = meta.z_count  || 1;
+    const cCount = meta.c_count || 1;
+    previewBase  = meta.preview_base;
+    Z = Math.floor(zCount / 2);   // start at middle Z
+    C = 0;
+
+    document.getElementById('title').textContent = meta.filename || '';
+
+    // Channel buttons
+    const chRow = document.getElementById('ch-row');
+    const names = meta.channel_names || [];
+    for (let c = 0; c < cCount; c++) {
+      const btn = document.createElement('button');
+      btn.className = 'ch-btn';
+      btn.textContent = names[c] || `Ch ${c + 1}`;
+      btn.onclick = () => { C = c; render(); };
+      chRow.appendChild(btn);
+    }
+
+    // Z slider (only shown when Z > 1)
+    if (zCount > 1) {
+      const zRow = document.getElementById('z-row');
+      zRow.style.display = 'flex';
+      const sl = document.getElementById('z-slider');
+      sl.max   = zCount - 1;
+      sl.value = Z;
+      sl.oninput = e => { Z = +e.target.value; render(); };
+    }
+
+    render();
+  })
+  .catch(e => {
+    document.body.innerHTML = `<div class="error">Could not load metadata: ${e}</div>`;
+  });
+</script>
+</body>
+</html>

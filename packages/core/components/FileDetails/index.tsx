@@ -1,23 +1,22 @@
-import { DefaultButton, Modal } from "@fluentui/react";
+import { DefaultButton, Modal } from "@fluentui/react"; // DefaultButton kept for "View relationship diagram"
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FileAnnotationList from "./FileAnnotationList";
+import InlineImageViewer from "./InlineImageViewer";
 import Pagination from "./Pagination";
 import useThumbnailPath from "./useThumbnailPath";
-import { PrimaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
+import { TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
 import FileDetail from "../../entity/FileDetail";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
-import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { selection } from "../../state";
 
 import styles from "./FileDetails.module.css";
-import Tutorial from "../../entity/Tutorial";
 
 interface Props {
     className?: string;
@@ -80,7 +79,6 @@ export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const hasProvenanceSource = useSelector(selection.selectors.hasProvenanceSource);
 
-    const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
     const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
     const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
     const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
@@ -88,6 +86,22 @@ export default function FileDetails(props: Props) {
     );
     const [isFullscreenThumbnail, setIsFullscreenThumbnail] = React.useState(false);
     const isThumbnailClickable = !!thumbnailPath && !isThumbnailLoading;
+    const previewUrl = props.fileDetails?.annotations.find(
+        (a) => typeof a.values[0] === "string" && String(a.values[0]).includes("viewer.html?meta=")
+    )?.values[0] as string | undefined;
+    // Debug: log annotation names and the found previewUrl
+    if (props.fileDetails) {
+        console.log(
+            "[Preview debug] annotations:",
+            props.fileDetails.annotations.map((a) => `${a.name}=${a.values[0]}`)
+        );
+        console.log("[Preview debug] previewUrl:", previewUrl);
+    }
+    const [previewOpen, setPreviewOpen] = React.useState(false);
+    // Close preview panel when a different file is selected
+    React.useEffect(() => {
+        setPreviewOpen(false);
+    }, [props.fileDetails?.uid]);
 
     return (
         <div
@@ -122,14 +136,6 @@ export default function FileDetails(props: Props) {
                                             onClick={onDownload}
                                         />
                                     </Tooltip>
-                                    <PrimaryButton
-                                        id={Tutorial.OPEN_WITH_ID}
-                                        className={styles.openWithButton}
-                                        iconName="ChevronDownMed"
-                                        text="Open with"
-                                        title="Open file by selected method"
-                                        menuItems={openWithMenuItems}
-                                    />
                                     {props.onClose && (
                                         <TransparentIconButton
                                             className={styles.clearButton}
@@ -208,11 +214,73 @@ export default function FileDetails(props: Props) {
                                 className={styles.annotationList}
                                 fileDetails={props.fileDetails}
                                 isLoading={!!props.isLoading}
+                                onPreviewClick={
+                                    previewUrl ? () => setPreviewOpen((o) => !o) : undefined
+                                }
                             />
                         </>
                     )}
                 </div>
             </div>
+            {previewOpen && previewUrl && (
+                <div
+                    style={{
+                        position: "fixed",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: "65vh",
+                        background: "#1a1a1a",
+                        borderTop: "2px solid #333",
+                        zIndex: 1000,
+                        display: "flex",
+                        flexDirection: "column",
+                        overflow: "hidden",
+                    }}
+                >
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "6px 12px",
+                            borderBottom: "1px solid #2a2a2a",
+                            flexShrink: 0,
+                        }}
+                    >
+                        <span style={{ fontSize: 12, color: "#888" }}>
+                            {props.fileDetails?.name}
+                        </span>
+                        <button
+                            onClick={() => setPreviewOpen(false)}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                color: "#888",
+                                cursor: "pointer",
+                                fontSize: 16,
+                                lineHeight: 1,
+                                padding: "0 4px",
+                            }}
+                            title="Close preview"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div
+                        style={{
+                            flex: 1,
+                            overflow: "hidden",
+                            padding: "8px 12px",
+                            display: "flex",
+                            flexDirection: "column",
+                            minHeight: 0,
+                        }}
+                    >
+                        <InlineImageViewer previewUrl={previewUrl} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -81,14 +81,18 @@ export default function OpenSourceDatasets() {
                     </div>
                 </div>
                 <div className={styles.content}>
-                    <h2 className={styles.tableTitle}>Datasets optimized for BioFile Finder</h2>
+                    <h2 className={styles.tableTitle}>Sub-cellular Structure Datasets</h2>
                     <p>
-                        These datasets utilize features that highlight BFF&apos;s capabilities, such
-                        as thumbnail rendering and interoperability with viewers.
+                        Confocal fluorescence datasets from the Gardel Lab, featuring multi-channel
+                        focal adhesion markers imaged in living cells.
                     </p>
-                    <DatasetTable onLoadDataset={loadDataset} featured />
-                    <h2 className={styles.tableTitle}>All datasets</h2>
-                    <DatasetTable onLoadDataset={loadDataset} />
+                    <DatasetTable onLoadDataset={loadDataset} category="featured" />
+                    <h2 className={styles.tableTitle}>Testing datasets</h2>
+                    <p>
+                        Experimental datasets used during BioFile Finder development. Not intended
+                        for production use.
+                    </p>
+                    <DatasetTable onLoadDataset={loadDataset} category="testing" />
                     <p>
                         Want to include your dataset? Send us a request at
                         <a

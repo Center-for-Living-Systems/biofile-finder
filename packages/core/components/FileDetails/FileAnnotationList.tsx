@@ -14,6 +14,7 @@ interface FileAnnotationListProps {
     className?: string;
     fileDetails: FileDetail | null;
     isLoading: boolean;
+    onPreviewClick?: () => void;
 }
 
 /**
@@ -21,7 +22,7 @@ interface FileAnnotationListProps {
  * details pane on right hand side of the application.
  */
 export default function FileAnnotationList(props: FileAnnotationListProps) {
-    const { className, fileDetails, isLoading } = props;
+    const { className, fileDetails, isLoading, onPreviewClick } = props;
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
@@ -97,10 +98,16 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                     name={annotation.displayName}
                     value={annotationValue}
                     fmsStateIndicator={fmsStateIndicator}
+                    onPreviewClick={
+                        typeof annotationValue === "string" &&
+                        annotationValue.includes("viewer.html?meta=")
+                            ? onPreviewClick
+                            : undefined
+                    }
                 />,
             ];
         }, [] as JSX.Element[]);
-    }, [annotations, fileDetails, isLoading, localPath]);
+    }, [annotations, fileDetails, isLoading, localPath, onPreviewClick]);
 
     return <div className={classNames(styles.list, className)}>{content}</div>;
 }
