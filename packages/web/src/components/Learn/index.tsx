@@ -121,26 +121,12 @@ export default function Learn() {
                 </p>
                 <h3>Can BioFile Finder store my data to make it public?</h3>
                 <p>
-                    Sort of. We are working on a way to allow users to store their .csv with us to
-                    make it public. In the meantime, email us at
-                    <a
-                        className={styles.link}
-                        href="mailto:aics_software_support@alleninstitute.org"
-                    >
-                        &nbsp;aics_software_support@alleninstitute.org
-                    </a>
-                    to request your data be included with our own collection of open-source
-                    datasets. Please note, your image data would need to be stored in a public
-                    location like
-                    <a
-                        className={styles.link}
-                        href="https://idr.openmicroscopy.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        &nbsp;Image Data Registry&nbsp;
-                    </a>
-                    or AWS.
+                    Contact us at{" "}
+                    <a className={styles.link} href="mailto:liyading@uchicago.edu">
+                        liyading@uchicago.edu
+                    </a>{" "}
+                    to discuss including your dataset. Your image data would need to be stored in a
+                    location accessible to the lab server.
                 </p>
                 <p className={styles.sectionFooter}>
                     Check out our{" "}
@@ -151,16 +137,31 @@ export default function Learn() {
                 </p>
             </div>
             <div className={styles.section}>
-                <h2>Have questions, ideas, requests, or want help getting started?</h2>
+                <h2>Have questions, ideas, or want help getting started?</h2>
                 <p>
-                    Please reach out to us at
+                    This BioFile Finder instance is maintained by the{" "}
                     <a
                         className={styles.link}
-                        href="mailto:aics_software_support@alleninstitute.org"
+                        href="https://gardel.uchicago.edu"
+                        target="_blank"
+                        rel="noreferrer"
                     >
-                        &nbsp;aics_software_support@alleninstitute.org
-                    </a>
-                    .
+                        Center for Living Systems
+                    </a>{" "}
+                    at the University of Chicago. It is built on the open-source{" "}
+                    <a
+                        className={styles.link}
+                        href="https://github.com/AllenInstitute/biofile-finder"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        BioFile Finder
+                    </a>{" "}
+                    developed by the Allen Institute for Cell Science. Please reach out to{" "}
+                    <a className={styles.link} href="mailto:liyading@uchicago.edu">
+                        Liya Ding (liyading@uchicago.edu)
+                    </a>{" "}
+                    with any questions.
                 </p>
             </div>
             <Modal />

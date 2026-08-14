@@ -94,24 +94,11 @@ export default function OpenSourceDatasets() {
                     </p>
                     <DatasetTable onLoadDataset={loadDataset} category="testing" />
                     <p>
-                        Want to include your dataset? Send us a request at
-                        <a
-                            className={styles.link}
-                            href="mailto:aics_software_support@alleninstitute.org"
-                        >
-                            &nbsp;aics_software_support@alleninstitute.org&nbsp;
+                        Want to include your dataset? Contact us at{" "}
+                        <a className={styles.link} href="mailto:liyading@uchicago.edu">
+                            liyading@uchicago.edu
                         </a>
-                        and we can discuss including your data. Please note that your image data
-                        would need to be stored in a public location like
-                        <a
-                            className={styles.link}
-                            href="https://idr.openmicroscopy.org/"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            &nbsp;the Image Data Resource&nbsp;
-                        </a>{" "}
-                        or AWS.
+                        .
                     </p>
                 </div>
             </div>

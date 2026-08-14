@@ -16,16 +16,8 @@ export default function ErrorPage() {
                 An unexpected error has bubbled up, we are not sure exactly what went wrong, but
                 below is the error we caught.
                 <br />
-                Navigate to the Help tab on the{" "}
-                <a
-                    href="https://bff.allencell.org"
-                    target="_blank"
-                    title="BioFile Finder homepage"
-                    rel="noreferrer"
-                >
-                    homepage
-                </a>{" "}
-                for options on getting in contact with us.
+                For help, contact{" "}
+                <a href="mailto:liyading@uchicago.edu">Liya Ding (liyading@uchicago.edu)</a>.
             </p>
             <div className={styles.error}>
                 <h3>Error</h3>
