@@ -74,24 +74,10 @@ export default function useHelpOptions(
             },
         },
         {
-            key: "issues-page",
-            text: "Report issue",
-            title: "Opens the BioFile Finder GitHub issues page",
-            href: "https://github.com/AllenInstitute/biofile-finder/issues",
-            target: "_blank",
-        },
-        {
-            key: "support-forum",
-            text: "Support forum",
-            title: "Opens support forum in new window",
-            href: "https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a",
-            target: "_blank",
-        },
-        {
             key: "contact-us",
             text: "Contact us",
-            title: "Email us directly",
-            href: "mailto:aics_software_support@alleninstitute.org",
+            title: "Email Liya Ding (Center for Living Systems, UChicago)",
+            href: "mailto:liyading@uchicago.edu",
         },
     ];
 }
