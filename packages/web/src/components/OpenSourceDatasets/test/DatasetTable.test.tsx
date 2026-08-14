@@ -20,7 +20,7 @@ describe("<DatasetTable />", () => {
     const mockRouter = createBrowserRouter([
         {
             path: "/",
-            element: <DatasetTable onLoadDataset={noop} />,
+            element: <DatasetTable onLoadDataset={noop} group="Focal Adhesion" />,
         },
         {
             path: "/app",

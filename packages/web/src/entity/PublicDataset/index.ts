@@ -15,6 +15,7 @@ export interface PublicDatasetProps {
     doi?: string;
     featured?: "TRUE" | "FALSE" | "TESTING"; // string indicating dataset category
     file_count?: string;
+    group?: string; // Display group name, e.g. "Focal Adhesion" or "Testing"
     index?: string;
     created?: string;
     organization?: string;
@@ -68,6 +69,7 @@ export const DatasetAnnotations = {
     SOURCE: new DatasetAnnotation("Source", "source"),
     SPECIFIC_QUERY: new DatasetAnnotation("Specific query", "specific_query"),
     VERSION: new DatasetAnnotation("Version", "version"),
+    GROUP: new DatasetAnnotation("group", "group"),
 };
 
 // Limited set used for the details panel
@@ -176,6 +178,10 @@ export default class PublicDataset {
 
     public get isTest(): boolean {
         return this.datasetDetails.featured?.toLowerCase() === "testing";
+    }
+
+    public get group(): string {
+        return (this.datasetDetails.group || "").trim();
     }
 
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {

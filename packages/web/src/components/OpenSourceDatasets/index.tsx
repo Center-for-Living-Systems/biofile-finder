@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import DatasetTable from "./DatasetTable";
+import useDatasetGroupNames from "./useDatasetGroupNames";
 import DatasetDetails from "../DatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
 import Modal from "../../../../core/components/Modal";
@@ -14,6 +15,13 @@ import SearchParams, {
 } from "../../../../core/entity/SearchParams";
 
 import styles from "./OpenSourceDatasets.module.css";
+
+const GROUP_DESCRIPTIONS: Record<string, string> = {
+    "focal adhesion":
+        "Confocal fluorescence datasets from the Gardel Lab, featuring multi-channel focal adhesion markers imaged in living cells.",
+    testing:
+        "Experimental datasets used during BioFile Finder development. Not intended for production use.",
+};
 /**
  * Page for displaying public-facing datasets
  * Currently using placeholder text and data
@@ -21,6 +29,7 @@ import styles from "./OpenSourceDatasets.module.css";
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [groupNames] = useDatasetGroupNames();
 
     // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
@@ -81,18 +90,16 @@ export default function OpenSourceDatasets() {
                     </div>
                 </div>
                 <div className={styles.content}>
-                    <h2 className={styles.tableTitle}>Sub-cellular Structure Datasets</h2>
-                    <p>
-                        Confocal fluorescence datasets from the Gardel Lab, featuring multi-channel
-                        focal adhesion markers imaged in living cells.
-                    </p>
-                    <DatasetTable onLoadDataset={loadDataset} category="featured" />
-                    <h2 className={styles.tableTitle}>Testing datasets</h2>
-                    <p>
-                        Experimental datasets used during BioFile Finder development. Not intended
-                        for production use.
-                    </p>
-                    <DatasetTable onLoadDataset={loadDataset} category="testing" />
+                    {groupNames.map((group) => {
+                        const desc = GROUP_DESCRIPTIONS[group.toLowerCase()];
+                        return (
+                            <React.Fragment key={group}>
+                                <h2 className={styles.tableTitle}>{group} Datasets</h2>
+                                {desc && <p>{desc}</p>}
+                                <DatasetTable onLoadDataset={loadDataset} group={group} />
+                            </React.Fragment>
+                        );
+                    })}
                     <p>
                         Want to include your dataset? Contact us at{" "}
                         <a className={styles.link} href="mailto:liyading@uchicago.edu">

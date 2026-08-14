@@ -25,7 +25,7 @@ import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
     onLoadDataset: (dataset: PublicDataset) => void;
-    category?: "featured" | "testing";
+    group: string;
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
@@ -46,7 +46,7 @@ export default function DatasetTable(props: DatasetTableProps) {
             };
         }
     );
-    const [items, isLoading, error] = useDatasetDetails(sortColumn, props?.category);
+    const [items, isLoading, error] = useDatasetDetails(sortColumn, props.group);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
@@ -56,9 +56,7 @@ export default function DatasetTable(props: DatasetTableProps) {
             return (
                 <div className={styles.rowWrapper}>
                     <Icon
-                        className={classNames(styles.favoriteIcon, {
-                            [styles.favoriteIconHidden]: props.category !== "featured",
-                        })}
+                        className={classNames(styles.favoriteIcon, styles.favoriteIconHidden)}
                         iconName="FavoriteStarFill"
                     />
                     <DatasetRow
