@@ -1,190 +1,118 @@
 #!/usr/bin/env python3
 """Generate the master Dataset Manifest that powers the /datasets page.
 
-Each entry becomes one row (a PublicDataset). `specific_query` is the preset
-query that auto-opens the dataset's own file-manifest when clicked.
+Reads:  deploy/datasets-meta.csv   (human-editable; one row per dataset)
+Writes: /srv/shared/Dataset+Manifest.csv  (served at /data/Dataset+Manifest.csv)
 
-Writes /srv/shared/Dataset+Manifest.csv  (served at /data/Dataset+Manifest.csv).
-Adding a dataset later = append to DATASETS and re-run (no rebuild needed).
+To add a new dataset: append a row to datasets-meta.csv, then re-run this script.
+To add a new metadata field: add a column to datasets-meta.csv; the script passes
+all columns through to the output automatically.
+
+Columns auto-computed (do NOT put these in datasets-meta.csv):
+  dataset_path   — derived from dataset_id
+  specific_query — derived from dataset_path + dataset_id
+  file_count     — counted from the built per-dataset manifest on disk
+  dataset_size   — summed from the built per-dataset manifest on disk
 """
-import csv, json
-from urllib.parse import quote
+import csv, json, sys
 from pathlib import Path
+from urllib.parse import quote
 
-HOST = "http://128.135.108.226"
-OUT = Path("/srv/shared/Dataset+Manifest.csv")
+HOST       = "http://128.135.108.226"
+NAS_BASE   = f"{HOST}/data/_derived/gardel"
+DERIVED    = Path("/srv/shared/_derived/gardel")
+OUT        = Path("/srv/shared/Dataset+Manifest.csv")
+META_CSV   = Path(__file__).parent / "datasets-meta.csv"
 
-# The /datasets page maps columns by DISPLAY LABEL (annotations.find(name == displayLabel)),
-# so CSV headers MUST be the display labels, not the machine prop names.
-# (machine_key, csv_header) in display order.
-LABELS = [
-    ("dataset_id", "Dataset ID"),
-    ("dataset_name", "Dataset name"),
-    ("dataset_path", "File Path"),
-    ("dataset_size", "Size"),
-    ("description", "Short description"),
-    ("file_count", "File count"),
-    ("featured", "Featured"),
-    ("created", "Creation date"),
-    ("organization", "Organization"),
-    ("related_publication", "Related publication"),
-    ("doi", "DOI"),
-    ("version", "Version"),
-    ("index", "Index"),
-    ("source", "Source"),
-    ("specific_query", "Specific query"),
+# The /datasets page maps columns by DISPLAY LABEL, so output headers must
+# be the display labels, not the Python keys.
+# (python_key, display_label) — order controls column order in the output.
+FIXED_COLUMNS = [
+    ("dataset_id",           "Dataset ID"),
+    ("dataset_name",         "Dataset name"),
+    ("dataset_path",         "File Path"),
+    ("dataset_size",         "Size"),
+    ("description",          "Short description"),
+    ("file_count",           "File count"),
+    ("featured",             "Featured"),
+    ("created",              "Creation date"),
+    ("organization",         "Organization"),
+    ("related_publication",  "Related publication"),
+    ("doi",                  "DOI"),
+    ("version",              "Version"),
+    ("index",                "Index"),
+    ("source",               "Source"),
+    ("specific_query",       "Specific query"),
 ]
+FIXED_KEYS = {k for k, _ in FIXED_COLUMNS}
 
 
-def specific_query(manifest_url: str, name: str) -> str:
-    src = {"name": name, "type": "csv", "uri": manifest_url}
+def fmt_size(total_bytes: int) -> str:
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if total_bytes < 1024:
+            return f"{total_bytes:.1f} {unit}" if unit != "B" else f"{total_bytes} B"
+        total_bytes /= 1024
+    return f"{total_bytes:.1f} PB"
+
+
+def manifest_stats(dataset_id: str) -> tuple[str, str]:
+    """Return (file_count, dataset_size) by reading the per-dataset manifest."""
+    manifest = DERIVED / f"{dataset_id}-manifest.csv"
+    if not manifest.exists():
+        return "—", "—"
+    try:
+        with open(manifest, newline="") as f:
+            rows = list(csv.DictReader(f))
+        count = len(rows)
+        total = sum(int(r.get("File Size", 0) or 0) for r in rows)
+        return str(count), fmt_size(total)
+    except Exception:
+        return "—", "—"
+
+
+def make_specific_query(dataset_path: str, dataset_id: str) -> str:
+    src = {"name": dataset_id, "type": "csv", "uri": dataset_path}
     return "source=" + quote(json.dumps(src, separators=(",", ":")), safe="")
 
 
-NAS_BASE = f"{HOST}/data/_derived/gardel"
-
-# All four Annabel / FA-ML datasets from the Gardel Lab NAS.
-# Manifests are built by running deploy/build-annabel-datasets.sh on the server.
-# File counts and sizes are filled in after the first manifest build.
-DATASETS = [
-    {
-        "dataset_id": "20250311-vinc-pax",
-        "dataset_name": "20250311 — eGFP-Zyxin 488 / Phalloidin 405 / Vinculin 647 / Paxillin 568",
-        "dataset_path": f"{NAS_BASE}/20250311-vinc-pax-manifest.csv",
-        "dataset_size": "—",
-        "description": ("Confocal CZI: eGFP-Zyxin (488), Phalloidin (405), "
-                        "Vinculin (rb, 647), Paxillin (m, 568). "
-                        "Focal-adhesion marker panel. "
-                        "Served live from Gardel Lab NAS (read-only)."),
-        "file_count": "—",
-        "featured": "TRUE",
-        "created": "2025-03-11",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "1",
-        "source": "external",
-    },
-    {
-        "dataset_id": "20250720-pfak-pax",
-        "dataset_name": "20250720 — eGFP-Zyxin 488 / Phalloidin 405 / pFAK 647 / Paxillin 568",
-        "dataset_path": f"{NAS_BASE}/20250720-pfak-pax-manifest.csv",
-        "dataset_size": "—",
-        "description": ("Confocal CZI: eGFP-Zyxin (488), Phalloidin (405), "
-                        "pFAK (rb, 647), Paxillin (m, 568). "
-                        "FAK-phosphorylation panel. "
-                        "Served live from Gardel Lab NAS (read-only)."),
-        "file_count": "—",
-        "featured": "TRUE",
-        "created": "2025-07-20",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "2",
-        "source": "external",
-    },
-    {
-        "dataset_id": "20250721-ppax118",
-        "dataset_name": "20250721 — eGFP-Zyxin 488 / Phalloidin 405 / pPaxillin-Y118 647 / Paxillin 568",
-        "dataset_path": f"{NAS_BASE}/20250721-ppax118-manifest.csv",
-        "dataset_size": "—",
-        "description": ("Confocal CZI: eGFP-Zyxin (488), Phalloidin (405), "
-                        "pPaxillin-Y118 (rb, 647), Paxillin (m, 568). "
-                        "Paxillin Y118 phosphorylation panel. "
-                        "Served live from Gardel Lab NAS (read-only)."),
-        "file_count": "—",
-        "featured": "TRUE",
-        "created": "2025-07-21",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "3",
-        "source": "external",
-    },
-    {
-        "dataset_id": "20260227-nih3t3-vinc-pax",
-        "dataset_name": "20260227 — NIH3T3 / Zyxin-GFP / Phalloidin 405 / Vinculin 647 / Paxillin 555",
-        "dataset_path": f"{NAS_BASE}/20260227-nih3t3-vinc-pax-manifest.csv",
-        "dataset_size": "—",
-        "description": ("Confocal CZI (reduced size): NIH3T3 cells, "
-                        "Zyxin-GFP, Phalloidin (405), "
-                        "Vinculin (rb, 647), Paxillin (m, 555). "
-                        "Served live from Gardel Lab NAS (read-only)."),
-        "file_count": "—",
-        "featured": "TRUE",
-        "created": "2026-02-27",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "4",
-        "source": "external",
-    },
-    # --- Test datasets (Liya / bff_test_files) ---
-    {
-        "dataset_id": "test-czi",
-        "dataset_name": "Test — CZI files",
-        "dataset_path": f"{NAS_BASE}/test-czi-manifest.csv",
-        "dataset_size": "—",
-        "description": "Test CZI dataset for BioFile Finder preview development.",
-        "file_count": "—",
-        "featured": "TESTING",
-        "created": "2026-07-14",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "5",
-        "source": "external",
-    },
-    {
-        "dataset_id": "test-tiff",
-        "dataset_name": "Test — TIFF files",
-        "dataset_path": f"{NAS_BASE}/test-tiff-manifest.csv",
-        "dataset_size": "—",
-        "description": "Test TIFF dataset for BioFile Finder preview development.",
-        "file_count": "—",
-        "featured": "TESTING",
-        "created": "2026-07-14",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "6",
-        "source": "external",
-    },
-    {
-        "dataset_id": "test-nd",
-        "dataset_name": "Test — ND2 files",
-        "dataset_path": f"{NAS_BASE}/test-nd-manifest.csv",
-        "dataset_size": "—",
-        "description": "Test ND2 dataset for BioFile Finder preview development.",
-        "file_count": "—",
-        "featured": "TESTING",
-        "created": "2026-07-14",
-        "organization": "University of Chicago — Gardel Lab",
-        "related_publication": "",
-        "doi": "",
-        "version": "1",
-        "index": "7",
-        "source": "external",
-    },
-]
-
-
 def main() -> None:
-    for d in DATASETS:
-        d["specific_query"] = specific_query(d["dataset_path"], d["dataset_id"])
+    if not META_CSV.exists():
+        sys.exit(f"datasets-meta.csv not found at {META_CSV}")
+
+    with open(META_CSV, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    # Discover any extra columns the user added beyond the fixed set
+    sample_keys = list(rows[0].keys()) if rows else []
+    extra_keys = [k for k in sample_keys if k not in FIXED_KEYS]
+
+    # Build output column spec: fixed columns + any extras (as-is labels)
+    out_columns = list(FIXED_COLUMNS) + [(k, k) for k in extra_keys]
+
+    out_rows = []
+    for row in rows:
+        did = row["dataset_id"].strip()
+        dataset_path = f"{NAS_BASE}/{did}-manifest.csv"
+        file_count, dataset_size = manifest_stats(did)
+
+        out_rows.append({
+            **row,
+            "dataset_path":   dataset_path,
+            "specific_query": make_specific_query(dataset_path, did),
+            "file_count":     file_count,
+            "dataset_size":   dataset_size,
+        })
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    with open(OUT, "w", newline="") as f:
+    with open(OUT, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow([label for _, label in LABELS])
-        for d in DATASETS:
-            w.writerow([d.get(key, "") for key, _ in LABELS])
-    print(f"Wrote {len(DATASETS)} dataset(s) to {OUT}")
+        w.writerow([label for _, label in out_columns])
+        for r in out_rows:
+            w.writerow([r.get(key, "") for key, _ in out_columns])
+
+    print(f"Wrote {len(out_rows)} dataset(s) to {OUT}")
+    for r in out_rows:
+        print(f"  {r['dataset_id']:35s}  files={r['file_count']:>6}  size={r['dataset_size']}")
 
 
 if __name__ == "__main__":
