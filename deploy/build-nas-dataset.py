@@ -91,8 +91,9 @@ def czi_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
     shape = czi.get_dims_shape()[0]
     Z_count = shape.get('Z', (0, 1))[1]
     C_count = shape.get('C', (0, 1))[1]
+    T_count = shape.get('T', (0, 1))[1]
     base = {}
-    for dim in ('S', 'T', 'M', 'H'):
+    for dim in ('S', 'M', 'H'):
         if shape.get(dim, (0, 1))[1] > 1:
             base[dim] = 0
 
@@ -109,15 +110,32 @@ def czi_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
         pass
     channel_names = (channel_names + [''] * C_count)[:C_count]
 
-    for z in range(Z_count):
-        z_kwargs = dict(base)
-        if Z_count > 1:
-            z_kwargs['Z'] = z
-        for c in range(C_count):
-            plane, _ = czi.read_image(**z_kwargs, C=c)
-            _save_preview(np.squeeze(plane), out_dir / f"{rel_src}.c{c}.z{z:03d}.jpg")
+    # For time series: generate first, middle, and last frames
+    if T_count > 1:
+        t_indices = sorted(set([0, T_count // 2, T_count - 1]))
+    else:
+        t_indices = [0]
 
-    return {"z_count": Z_count, "c_count": C_count, "channel_names": channel_names}
+    for t_idx in t_indices:
+        t_kwargs = dict(base)
+        if T_count > 1:
+            t_kwargs['T'] = t_idx
+        for z in range(Z_count):
+            z_kwargs = dict(t_kwargs)
+            if Z_count > 1:
+                z_kwargs['Z'] = z
+            for c in range(C_count):
+                plane, _ = czi.read_image(**z_kwargs, C=c)
+                if T_count > 1:
+                    dst = out_dir / f"{rel_src}.t{t_idx}.c{c}.z{z:03d}.jpg"
+                else:
+                    dst = out_dir / f"{rel_src}.c{c}.z{z:03d}.jpg"
+                _save_preview(np.squeeze(plane), dst)
+
+    meta = {"z_count": Z_count, "c_count": C_count, "channel_names": channel_names}
+    if T_count > 1:
+        meta["t_indices"] = t_indices
+    return meta
 
 
 def tif_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
@@ -129,17 +147,26 @@ def tif_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
     dim = {ax: i for i, ax in enumerate(axes)}
     Z_count = shape[dim['Z']] if 'Z' in dim else 1
     C_count = shape[dim['C']] if 'C' in dim else 1
+    T_count = shape[dim['T']] if 'T' in dim else 1
     data = tifffile.imread(str(src))
-    for z in range(Z_count):
-        for c in range(C_count):
-            idx = [slice(None)] * len(axes)
-            for ax, val in [('T', 0), ('S', 0)]:
-                if ax in dim: idx[dim[ax]] = val
-            if 'Z' in dim: idx[dim['Z']] = z
-            if 'C' in dim: idx[dim['C']] = c
-            _save_preview(np.squeeze(data[tuple(idx)]),
-                          out_dir / f"{rel_src}.c{c}.z{z:03d}.jpg")
-    return {"z_count": Z_count, "c_count": C_count, "channel_names": []}
+    t_indices = sorted(set([0, T_count // 2, T_count - 1])) if T_count > 1 else [0]
+    for t_idx in t_indices:
+        for z in range(Z_count):
+            for c in range(C_count):
+                idx = [slice(None)] * len(axes)
+                if 'T' in dim: idx[dim['T']] = t_idx
+                if 'S' in dim: idx[dim['S']] = 0
+                if 'Z' in dim: idx[dim['Z']] = z
+                if 'C' in dim: idx[dim['C']] = c
+                if T_count > 1:
+                    dst = out_dir / f"{rel_src}.t{t_idx}.c{c}.z{z:03d}.jpg"
+                else:
+                    dst = out_dir / f"{rel_src}.c{c}.z{z:03d}.jpg"
+                _save_preview(np.squeeze(data[tuple(idx)]), dst)
+    meta = {"z_count": Z_count, "c_count": C_count, "channel_names": []}
+    if T_count > 1:
+        meta["t_indices"] = t_indices
+    return meta
 
 
 def nd2_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
@@ -148,6 +175,7 @@ def nd2_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
         sizes = dict(f.sizes)
         Z_count = sizes.get('Z', 1)
         C_count = sizes.get('C', 1)
+        T_count = sizes.get('T', 1)
         channel_names = []
         try:
             for ch in f.metadata.channels:
@@ -157,17 +185,27 @@ def nd2_previews(src: Path, out_dir: Path, rel_src: str) -> dict:
         channel_names = (channel_names + [''] * C_count)[:C_count]
         dask_arr = f.to_dask()
         axes = list(sizes.keys())
-        for z in range(Z_count):
-            for c in range(C_count):
-                idx = []
-                for ax in axes:
-                    if ax in ('Y', 'X'):   idx.append(slice(None))
-                    elif ax == 'Z':        idx.append(z)
-                    elif ax == 'C':        idx.append(c)
-                    else:                  idx.append(0)  # P, T, S → first
-                plane = dask_arr[tuple(idx)].compute()
-                _save_preview(plane, out_dir / f"{rel_src}.c{c}.z{z:03d}.jpg")
-    return {"z_count": Z_count, "c_count": C_count, "channel_names": channel_names}
+        t_indices = sorted(set([0, T_count // 2, T_count - 1])) if T_count > 1 else [0]
+        for t_idx in t_indices:
+            for z in range(Z_count):
+                for c in range(C_count):
+                    idx = []
+                    for ax in axes:
+                        if ax in ('Y', 'X'):   idx.append(slice(None))
+                        elif ax == 'Z':        idx.append(z)
+                        elif ax == 'C':        idx.append(c)
+                        elif ax == 'T':        idx.append(t_idx)
+                        else:                  idx.append(0)  # P, S → first
+                    plane = dask_arr[tuple(idx)].compute()
+                    if T_count > 1:
+                        dst = out_dir / f"{rel_src}.t{t_idx}.c{c}.z{z:03d}.jpg"
+                    else:
+                        dst = out_dir / f"{rel_src}.c{c}.z{z:03d}.jpg"
+                    _save_preview(plane, dst)
+    meta = {"z_count": Z_count, "c_count": C_count, "channel_names": channel_names}
+    if T_count > 1:
+        meta["t_indices"] = t_indices
+    return meta
 
 
 def write_previews(src: Path, out_dir: Path, rel_src: str, ext: str) -> dict | None:
