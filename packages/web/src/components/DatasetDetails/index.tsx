@@ -67,6 +67,10 @@ export default function DatasetDetails(props: DatasetDetailsProps) {
                     );
                 }
             } else datasetFieldValue = "--"; // Still display field, just indicate no value provided
+
+            // Skip rows with no value (empty string or undefined)
+            if (!datasetFieldValue) return accum;
+
             const ret = [
                 ...accum,
                 <DatasetDetailsRow

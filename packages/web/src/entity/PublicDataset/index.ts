@@ -25,6 +25,22 @@ export interface PublicDatasetProps {
     specific_query?: string; // A pre-set query that we will attempt to load by default
     version?: string;
     source?: string; // Indicate whether the dataset comes from internal (AICS) or external (other) source
+    // Imaging metadata
+    cell_line?: string;
+    microscopy?: string;
+    magnification?: string;
+    pixel_size?: string;
+    image_width_pixel?: string;
+    image_width_um?: string;
+    image_height_pixel?: string;
+    image_height_um?: string;
+    channel_1?: string;
+    channel_2?: string;
+    channel_3?: string;
+    channel_4?: string;
+    channel_5?: string;
+    channel_6?: string;
+    channel_7?: string;
 }
 
 export class DatasetAnnotation {
@@ -70,6 +86,22 @@ export const DatasetAnnotations = {
     SPECIFIC_QUERY: new DatasetAnnotation("Specific query", "specific_query"),
     VERSION: new DatasetAnnotation("Version", "version"),
     GROUP: new DatasetAnnotation("group", "group"),
+    // Imaging metadata
+    CELL_LINE: new DatasetAnnotation("Cell line", "cell_line"),
+    MICROSCOPY: new DatasetAnnotation("Microscopy", "microscopy"),
+    MAGNIFICATION: new DatasetAnnotation("Magnification", "magnification"),
+    PIXEL_SIZE: new DatasetAnnotation("Pixel size", "pixel_size"),
+    IMAGE_WIDTH_PX: new DatasetAnnotation("Image width (px)", "image_width_pixel"),
+    IMAGE_WIDTH_UM: new DatasetAnnotation("Image width (µm)", "image_width_um"),
+    IMAGE_HEIGHT_PX: new DatasetAnnotation("Image height (px)", "image_height_pixel"),
+    IMAGE_HEIGHT_UM: new DatasetAnnotation("Image height (µm)", "image_height_um"),
+    CHANNEL_1: new DatasetAnnotation("Channel 1", "channel_1"),
+    CHANNEL_2: new DatasetAnnotation("Channel 2", "channel_2"),
+    CHANNEL_3: new DatasetAnnotation("Channel 3", "channel_3"),
+    CHANNEL_4: new DatasetAnnotation("Channel 4", "channel_4"),
+    CHANNEL_5: new DatasetAnnotation("Channel 5", "channel_5"),
+    CHANNEL_6: new DatasetAnnotation("Channel 6", "channel_6"),
+    CHANNEL_7: new DatasetAnnotation("Channel 7", "channel_7"),
 };
 
 // Limited set used for the details panel
@@ -81,6 +113,22 @@ export const DATASET_DISPLAY_FIELDS = [
     DatasetAnnotations.CREATION_DATE,
     DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DATASET_SIZE,
+    // Imaging metadata — rows with empty values are hidden in the details panel
+    DatasetAnnotations.CELL_LINE,
+    DatasetAnnotations.MICROSCOPY,
+    DatasetAnnotations.MAGNIFICATION,
+    DatasetAnnotations.PIXEL_SIZE,
+    DatasetAnnotations.IMAGE_WIDTH_PX,
+    DatasetAnnotations.IMAGE_WIDTH_UM,
+    DatasetAnnotations.IMAGE_HEIGHT_PX,
+    DatasetAnnotations.IMAGE_HEIGHT_UM,
+    DatasetAnnotations.CHANNEL_1,
+    DatasetAnnotations.CHANNEL_2,
+    DatasetAnnotations.CHANNEL_3,
+    DatasetAnnotations.CHANNEL_4,
+    DatasetAnnotations.CHANNEL_5,
+    DatasetAnnotations.CHANNEL_6,
+    DatasetAnnotations.CHANNEL_7,
 ];
 
 // Limited set used for the table header

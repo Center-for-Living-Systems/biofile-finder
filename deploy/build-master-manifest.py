@@ -82,12 +82,32 @@ def main() -> None:
     with open(META_CSV, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
 
+    # Human-readable labels for extra columns added to datasets-meta.csv
+    EXTRA_COLUMN_LABELS = {
+        "group":             "group",
+        "cell_line":         "Cell line",
+        "microscopy":        "Microscopy",
+        "magnification":     "Magnification",
+        "pixel_size":        "Pixel size",
+        "image_width_pixel": "Image width (px)",
+        "image_width_um":    "Image width (µm)",
+        "image_height_pixel":"Image height (px)",
+        "image_height_um":   "Image height (µm)",
+        "channel_1":         "Channel 1",
+        "channel_2":         "Channel 2",
+        "channel_3":         "Channel 3",
+        "channel_4":         "Channel 4",
+        "channel_5":         "Channel 5",
+        "channel_6":         "Channel 6",
+        "channel_7":         "Channel 7",
+    }
+
     # Discover any extra columns the user added beyond the fixed set
     sample_keys = list(rows[0].keys()) if rows else []
     extra_keys = [k for k in sample_keys if k not in FIXED_KEYS]
 
-    # Build output column spec: fixed columns + any extras (as-is labels)
-    out_columns = list(FIXED_COLUMNS) + [(k, k) for k in extra_keys]
+    # Build output column spec: fixed columns + extras with nice display labels
+    out_columns = list(FIXED_COLUMNS) + [(k, EXTRA_COLUMN_LABELS.get(k, k)) for k in extra_keys]
 
     out_rows = []
     for row in rows:
